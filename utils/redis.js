@@ -1,35 +1,40 @@
-#!/usr/bin/yarn dev
-import exp from 'constants';
-import { createclient, print } from 'redis';
 import { promisify } from 'util';
+import { createClient } from 'redis';
 
+/**
+ * Represents a Redis client.
+ */
 class RedisClient {
   /**
-    * RedisClient class
-    */
+   * Creates a new RedisClient instance.
+   */
   constructor() {
-    this.client = createclient();
+    this.client = createClient();
     this.isClientConnected = true;
     this.client.on('error', (err) => {
-    console.error('Redis client failed to connect:', err.message || err.toString());
+      console.error('Redis client failed to connect:', err.message || err.toString());
+      this.isClientConnected = false;
     });
     this.client.on('connect', () => {
-    this.isClientConnected = true;
+      this.isClientConnected = true;
     });
   }
+
   /**
-   * Check if the client connection to Redis is live
+   * Checks if this client's connection to the Redis server is active.
+   * @returns {boolean}
    */
   isAlive() {
     return this.isClientConnected;
   }
+
   /**
-   * Redis operation on a given value
-   * @param {String} key: the key of the item
-   * @param {String | Object}
+   * Retrieves the value of a given key.
+   * @param {String} key The key of the item to retrieve.
+   * @returns {String | Object}
    */
   async get(key) {
-    return promisify(this.client.get).bind(this.client)(key)
+    return promisify(this.client.GET).bind(this.client)(key);
   }
 
   /**
@@ -39,7 +44,6 @@ class RedisClient {
    * @param {Number} duration The expiration time of the item in seconds.
    * @returns {Promise<void>}
    */
-
   async set(key, value, duration) {
     await promisify(this.client.SETEX)
       .bind(this.client)(key, duration, value);
@@ -55,5 +59,5 @@ class RedisClient {
   }
 }
 
-export const redisclient = new RedisClient();
-export default redisclient;
+export const redisClient = new RedisClient();
+export default redisClient;
